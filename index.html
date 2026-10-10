@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mein Digitaler Kleiderschrank | Personal KI-Stylist</title>
+  <style>
+    :root {
+      --bg-light: #ffffff;
+      --card-bg: #ffffff;
+      --text-main: #000000;
+      --text-muted: #666666;
+      --border-color: #e5e7eb;
+      --primary-dark: #000000;
+      --primary-btn: #000000;
+      --primary-hover: #333333;
+      --danger: #dc2626;
+      --tag-bg: #f3f4f6;
+    }
+
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background-color: var(--bg-light); color: var(--text-main); padding-bottom: 90px; }
+
+    /* Header */
+    header { background-color: var(--primary-dark); color: #ffffff; padding: 20px 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    header h1 { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+    header p { font-size: 11px; color: #a3a3a3; margin-top: 3px; }
+
+    /* Main Container */
+    .container { max-width: 600px; margin: 0 auto; padding: 15px; }
+
+    /* Navigation Tabs */
+    .nav-tabs { display: flex; background: #ffffff; border-radius: 14px; padding: 6px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid var(--border-color); position: fixed; bottom: 15px; left: 15px; right: 15px; max-width: 570px; margin-left: auto; margin-right: auto; z-index: 999; }
+    .nav-tab { flex: 1; text-align: center; padding: 10px 5px; font-size: 11px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 10px; transition: all 0.2s ease; border: none; background: none; }
+    .nav-tab.active { background-color: var(--primary-dark); color: #ffffff; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Cards */
+    .card { background: var(--card-bg); border-radius: 16px; padding: 18px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
+    .card-title { font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+
+    /* Form Elements */
+    input[type="text"], select, input[type="file"] { width: 100%; padding: 12px 14px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 14px; outline: none; background: #fafafa; }
+    input:focus, select:focus { border-color: var(--primary-dark); background: #ffffff; }
+    
+    .btn { background-color: var(--primary-btn); color: #ffffff; border: none; font-weight: 600; cursor: pointer; transition: background 0.2s; text-align: center; border-radius: 10px; padding: 12px; width: 100%; font-size: 14px; }
+    .btn:hover { background-color: var(--primary-hover); }
+    .btn-secondary { background-color: #f3f4f6; color: var(--text-main); border: 1px solid var(--border-color); }
+    .btn-secondary:hover { background-color: #e5e7eb; }
+    .btn-danger { background-color: var(--danger); color: #fff; }
+
+    /* Checkbox Group für Anlässe */
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .checkbox-chip { display: flex; align-items: center; gap: 5px; font-size: 12px; background: var(--tag-bg); padding: 6px 10px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color); }
+    .checkbox-chip input { cursor: pointer; margin: 0; width: auto; }
+
+    /* Inspiration Banner */
+    .inspo-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+    .inspo-scroll::-webkit-scrollbar { display: none; }
+    .inspo-card { flex: 0 0 160px; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); }
+    .inspo-card img { width: 100%; height: 120px; object-fit: cover; }
+    .inspo-info { padding: 8px; font-size: 11px; }
+    .inspo-tag { display: inline-block; background: var(--tag-bg); color: var(--text-main); padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; margin-bottom: 4px; }
+
+    /* Item Grid */
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .item-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); position: relative; display: flex; flex-direction: column; justify-content: space-between; }
+    .item-card img { width: 100%; height: 150px; object-fit: cover; background: #f0f0f0; }
+    .item-details { padding: 10px; }
+    .item-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .item-meta { font-size: 10px; color: var(--text-muted); display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+    .tag { background: var(--tag-bg); padding: 2px 6px; border-radius: 4px; font-weight: 500; }
+    .item-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 8px; }
+
+    /* Laundry Switch */
+    .laundry-btn { font-size: 10px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer; background: #fff; }
+    .laundry-btn.in-laundry { background: #fee2e2; border-color: var(--danger); color: var(--danger); font-weight: bold; }
+
+    /* Outfit Canvas Display */
+    .outfit-display { background: #ffffff; border: 2px solid var(--primary-dark); border-radius: 16px; padding: 15px; margin-top: 15px; text-align: center; }
+    .outfit-collage { display: flex; gap: 8px; justify-content: center; margin: 15px 0; }
+    .outfit-slot { flex: 1; max-width: 100px; background: #fafafa; border-radius: 8px; padding: 6px; border: 1px solid var(--border-color); }
+    .outfit-slot img { width: 100%; height: 90px; object-fit: cover; border-radius: 6px; }
+    .outfit-slot-title { font-size: 10px; font-weight: 700; margin-top: 4px; color: var(--text-main); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+
+    /* Color Palette Preview */
+    .palette-box { display: flex; justify-content: center; gap: 6px; margin: 10px 0; }
+    .color-dot { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); }
+
+    /* Insights Banner */
+    .alert-box { background-color: #f3f4f6; border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 10px; font-size: 12px; margin-bottom: 15px; }
+
+    .stats-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+    
+    .empty-state { text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 13px; grid-column: span 2; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>KLIKK</h1>
+    <p>Dein Digitaler Kleiderschrank & Personal KI-Stylist</p>
+  </header>
+
+  <div class="container">
+
+    <!-- TAB 1: HOMEPAGE / KI STYLIST -->
+    <div id="tab-home" class="tab-content active">
+      
+      <!-- KI Outfit Generator -->
+      <div class="card" style="border: 2px solid var(--primary-dark);">
+        <div class="card-title">
+          <span>✨ KI-Stylist Outfit Generator</span>
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Wähle einen Anlass – die KI kombiniert farblich harmonierende Kleidungsstücke aus deinem Schrank.
+        </p>
+
+        <label style="font-size: 11px; font-weight: bold; color: var(--text-muted);">ANLASS WÄHLEN</label>
+        <select id="aiOccasion">
+          <option value="Casual">Freizeit / Unterwegs mit Freunden</option>
+          <option value="Elegant">Elegant / Abendessen / Event</option>
+          <option value="Zuhause">Gemütlich Zuhause</option>
+          <option value="Business">Business / Arbeit / Uni</option>
+          <option value="Sport">Sport & Fitness</option>
+        </select>
+
+        <button class="btn" onclick="generateAIOutfit()">🎲 Outfit vorschlagen lassen</button>
+
+        <div id="outfitResult"></div>
+      </div>
+
+      <!-- Inspiration Feed -->
+      <div class="card">
+        <div class="card-title">💡 Trend-Inspirationen</div>
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">Styling-Ideen unabhängig von deinem Kleiderschrank:</p>
+        
+        <div class="inspo-scroll">
+          <div class="inspo-card">
+            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300" alt="Sommer Casual">
+            <div class="inspo-info">
+              <span class="inspo-tag">SOMMER CASUAL</span>
+              <div>Leinenhemd & Shorts</div>
+            </div>
+          </div>
+          <div class="inspo-card">
+            <img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=300" alt="Winter Minimal">
+            <div class="inspo-info">
+              <span class="inspo-tag">WINTER MONOCHROM</span>
+              <div>Wollmantel & Strick</div>
+            </div>
+          </div>
+          <div class="inspo-card">
+            <img src="https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?w=300" alt="Streetwear">
+            <div class="inspo-info">
+              <span class="inspo-tag">STREETWEAR</span>
+              <div>Oversized Hoodie & Cargo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: KLEIDERSCHRANK OVERVIEW -->
+    <div id="tab-wardrobe" class="tab-content">
+      
+      <!-- Hinzufügen Formular -->
+      <div class="card">
+        <div class="card-title">➕ Kleidungsstück hinzufügen</div>
+        <input type="text" id="itemName" placeholder="Bezeichnung (z. B. Schwarzer Hoodie)">
+        
+        <div style="display: flex; gap: 8px;">
+          <select id="itemCategory" style="flex:1;">
+            <option value="Oberteil">Oberteil</option>
+            <option value="Hose">Hose / Rock</option>
+            <option value="Schuhe">Schuhe</option>
+            <option value="Jacke">Jacke / Mantel</option>
+            <option value="Accessoire">Accessoire</option>
+          </select>
+          <select id="itemSeason" style="flex:1;">
+            <option value="Alle">Ganzjährig</option>
+            <option value="Sommer">Sommer</option>
+            <option value="Winter">Winter</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+          <select id="itemColor" style="flex:1;">
+            <option value="#000000">Schwarz</option>
+            <option value="#ffffff">Weiß</option>
+            <option value="#555555">Grau</option>
+            <option value="#1e3a8a">Dunkelblau</option>
+            <option value="#78350f">Braun / Beige</option>
+            <option value="#dc2626">Rot</option>
+          </select>
+        </div>
+
+        <label style="font-size: 11px; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 4px;">Anlässe (Mehrfachauswahl möglich):</label>
+        <div class="checkbox-group" id="occasionCheckboxes">
+          <label class="checkbox-chip"><input type="checkbox" value="Casual" checked> Casual</label>
+          <label class="checkbox-chip"><input type="checkbox" value="Elegant"> Elegant</label>
+          <label class="checkbox-chip"><input type="checkbox" value="Zuhause"> Zuhause</label>
+          <label class="checkbox-chip"><input type="checkbox" value="Business"> Business</label>
+          <label class="checkbox-chip"><input type="checkbox" value="Sport"> Sport</label>
+        </div>
+
+        <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Foto aufnehmen / hochladen:</label>
+        <input type="file" id="itemImage" accept="image/*">
+        <button class="btn" onclick="addItem()">Teil Speichern</button>
+      </div>
+
+      <!-- Filter bar -->
+      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+        <select id="filterCat" onchange="renderItems()" style="margin:0;">
+          <option value="Alle">Alle Kategorien</option>
+          <option value="Oberteil">Oberteile</option>
+          <option value="Hose">Hosen</option>
+          <option value="Schuhe">Schuhe</option>
+          <option value="Jacke">Jacken</option>
+          <option value="Accessoire">Accessoires</option>
+        </select>
+        <select id="filterLaundry" onchange="renderItems()" style="margin:0;">
+          <option value="Alle">Alle Status</option>
+          <option value="Sauber">NUR Sauber</option>
+          <option value="Wäsche">In der Wäsche 🧺</option>
+        </select>
+      </div>
+
+      <!-- Wardrobe Grid -->
+      <div id="wardrobeGrid" class="grid"></div>
+
+    </div>
+
+    <!-- TAB 3: STATISTIK & REINIGUNG -->
+    <div id="tab-stats" class="tab-content">
+      
+      <!-- Schrank-Hüter Warnung -->
+      <div id="insightsBox"></div>
+
+      <div class="card">
+        <div class="card-title">📊 Trage-Statistiken</div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Übersicht, wie oft deine Kleidung getragen wird:</p>
+        <div id="statsList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">❤️ Gespeicherte Favoriten</div>
+        <div id="favoritesList" style="font-size: 12px; color: var(--text-muted);">
+          Noch keine Favoriten gespeichert. Klicke bei KI-Vorschlägen auf das Herz!
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('home')">✨ KI-Stylist</button>
+    <button class="nav-tab" onclick="switchTab('wardrobe')">👗 Kleiderschrank</button>
+    <button class="nav-tab" onclick="switchTab('stats')">📊 Statistiken</button>
+  </div>
+
+  <script>
+    // Initialer Kleiderschrank startet komplett leer wie gewünscht
+    let wardrobe = JSON.parse(localStorage.getItem('klikk_wardrobe')) || [];
+    let favorites = JSON.parse(localStorage.getItem('klikk_favorites')) || [];
+
+    function saveData() {
+      localStorage.setItem('klikk_wardrobe', JSON.stringify(wardrobe));
+      localStorage.setItem('klikk_favorites', JSON.stringify(favorites));
+      renderItems();
+      renderStats();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    function addItem() {
+      const name = document.getElementById('itemName').value;
+      const category = document.getElementById('itemCategory').value;
+      const season = document.getElementById('itemSeason').value;
+      const color = document.getElementById('itemColor').value;
+      const fileInput = document.getElementById('itemImage');
+
+      // Ausgewählte Anlässe auslesen
+      const checkboxes = document.querySelectorAll('#occasionCheckboxes input[type="checkbox"]:checked');
+      const occasions = Array.from(checkboxes).map(cb => cb.value);
+
+      if (!name) return alert('Bitte gib eine Bezeichnung ein.');
+      if (occasions.length === 0) return alert('Bitte wähle mindestens einen Anlass aus.');
+
+      const newItem = {
+        id: Date.now(),
+        name, category, occasions, season, color,
+        inLaundry: false,
+        wears: 0,
+        lastWorn: new Date().toISOString().split('T')[0],
+        image: ''
+      };
+
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          newItem.image = e.target.result;
+          wardrobe.push(newItem);
+          saveData();
+          resetForm();
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        newItem.image = 'https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=300'; // Platzhalter für Kleidung
+        wardrobe.push(newItem);
+        saveData();
+        resetForm();
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('itemName').value = '';
+      document.getElementById('itemImage').value = '';
+      document.querySelectorAll('#occasionCheckboxes input[type="checkbox"]').forEach((cb, idx) => cb.checked = idx === 0);
+    }
+
+    function toggleLaundry(id) {
+      const item = wardrobe.find(i => i.id === id);
+      if (item) {
+        item.inLaundry = !item.inLaundry;
+        saveData();
+      }
+    }
+
+    function deleteItem(id) {
+      if(confirm('Möchtest du dieses Kleidungsstück wirklich löschen?')) {
+        wardrobe = wardrobe.filter(i => i.id !== id);
+        saveData();
+      }
+    }
+
+    function renderItems() {
+      const grid = document.getElementById('wardrobeGrid');
+      const catFilter = document.getElementById('filterCat').value;
+      const laundryFilter = document.getElementById('filterLaundry').value;
+
+      grid.innerHTML = '';
+
+      const filtered = wardrobe.filter(item => {
+        const matchCat = catFilter === 'Alle' || item.category === catFilter;
+        const matchLaundry = laundryFilter === 'Alle' || 
+          (laundryFilter === 'Sauber' && !item.inLaundry) || 
+          (laundryFilter === 'Wäsche' && item.inLaundry);
+        return matchCat && matchLaundry;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="empty-state">Dein Kleiderschrank ist in dieser Ansicht leer. Füge oben neue Teile hinzu!</div>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.innerHTML = `
+          <img src="${item.image}">
+          <div class="item-details">
+            <div class="item-name">${item.name}</div>
+            <div class="item-meta">
+              <span class="tag">${item.category}</span>
+              <span class="tag">${item.occasions ? item.occasions.join(', ') : 'Casual'}</span>
+            </div>
+            <div class="item-actions">
+              <button class="laundry-btn ${item.inLaundry ? 'in-laundry' : ''}" onclick="toggleLaundry(${item.id})">
+                ${item.inLaundry ? '🧺 In Wäsche' : '🧼 Sauber'}
+              </button>
+              <button class="btn-danger" style="padding:4px 8px; width:auto; font-size:10px; border-radius:6px; border:none;" onclick="deleteItem(${item.id})">🗑️</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // KI-Stylist Algorithmus
+    function generateAIOutfit() {
+      const occasion = document.getElementById('aiOccasion').value;
+      
+      const available = wardrobe.filter(i => !i.inLaundry);
+
+      const tops = available.filter(i => i.category === 'Oberteil' && (i.occasions && (i.occasions.includes(occasion) || i.occasions.includes('Casual'))));
+      const bottoms = available.filter(i => i.category === 'Hose' && (i.occasions && (i.occasions.includes(occasion) || i.occasions.includes('Casual'))));
+      const shoes = available.filter(i => i.category === 'Schuhe');
+
+      if (tops.length === 0 || bottoms.length === 0) {
+        alert('Nicht genügend saubere Kleidung für diesen Anlass im Schrank! Bitte füge passende Teile hinzu.');
+        return;
+      }
+
+      const selectedTop = tops[Math.floor(Math.random() * tops.length)];
+      const selectedBottom = bottoms[Math.floor(Math.random() * bottoms.length)];
+      const selectedShoe = shoes.length > 0 ? shoes[Math.floor(Math.random() * shoes.length)] : null;
+
+      selectedTop.wears = (selectedTop.wears || 0) + 1;
+      selectedBottom.wears = (selectedBottom.wears || 0) + 1;
+      saveData();
+
+      const container = document.getElementById('outfitResult');
+      container.innerHTML = `
+        <div class="outfit-display">
+          <div style="font-size:12px; font-weight:bold; color:var(--primary-dark);">Empfohlenes Outfit für "${occasion}"</div>
+          
+          <div class="outfit-collage">
+            <div class="outfit-slot">
+              <img src="${selectedTop.image}">
+              <div class="outfit-slot-title">${selectedTop.name}</div>
+            </div>
+            <div class="outfit-slot">
+              <img src="${selectedBottom.image}">
+              <div class="outfit-slot-title">${selectedBottom.name}</div>
+            </div>
+            ${selectedShoe ? `
+            <div class="outfit-slot">
+              <img src="${selectedShoe.image}">
+              <div class="outfit-slot-title">${selectedShoe.name}</div>
+            </div>` : ''}
+          </div>
+
+          <div style="font-size:11px; color:var(--text-muted);">Harmonische Farbpalette:</div>
+          <div class="palette-box">
+            <div class="color-dot" style="background:${selectedTop.color}"></div>
+            <div class="color-dot" style="background:${selectedBottom.color}"></div>
+            ${selectedShoe ? `<div class="color-dot" style="background:${selectedShoe.color}"></div>` : ''}
+          </div>
+
+          <button class="btn btn-secondary" style="font-size:12px; margin-top:8px; padding:8px;" onclick="saveFavorite('${selectedTop.name}', '${selectedBottom.name}')">❤️ Outfit Speichern</button>
+        </div>
+      `;
+    }
+
+    function saveFavorite(top, bottom) {
+      favorites.push(`${top} + ${bottom}`);
+      localStorage.setItem('klikk_favorites', JSON.stringify(favorites));
+      alert('Outfit zu deinen Favoriten hinzugefügt!');
+      renderStats();
+    }
+
+    function renderStats() {
+      const statsList = document.getElementById('statsList');
+      const insightsBox = document.getElementById('insightsBox');
+      const favList = document.getElementById('favoritesList');
+
+      statsList.innerHTML = '';
+      
+      if (wardrobe.length === 0) {
+        statsList.innerHTML = `<div style="font-size:12px; color:var(--text-muted);">Noch keine Kleidungsstücke vorhanden.</div>`;
+      } else {
+        const sorted = [...wardrobe].sort((a,b) => (b.wears || 0) - (a.wears || 0));
+        sorted.forEach(item => {
+          const row = document.createElement('div');
+          row.className = 'stats-item';
+          row.innerHTML = `<span>${item.name}</span><strong>${item.wears || 0}× getragen</strong>`;
+          statsList.appendChild(row);
+        });
+      }
+
+      const unwornWinter = wardrobe.filter(i => i.season === 'Winter' && (i.wears || 0) <= 0);
+      if (unwornWinter.length > 0) {
+        insightsBox.innerHTML = `
+          <div class="alert-box">
+            <strong>⚠️ Schrank-Hüter Hinweis:</strong><br>
+            Du hast <em>${unwornWinter[0].name}</em> bisher noch gar nicht getragen. Zeit für eine neue Kombination!
+          </div>
+        `;
+      } else {
+        insightsBox.innerHTML = '';
+      }
+
+      if (favorites.length > 0) {
+        favList.innerHTML = favorites.map(f => `<div style="padding:4px 0; border-bottom:1px solid var(--border-color);">❤️ ${f}</div>`).join('');
+      } else {
+        favList.innerHTML = `Noch keine Favoriten gespeichert.`;
+      }
+    }
+
+    // App Start
+    renderItems();
+    renderStats();
+  </script>
+</body>
+</html>
